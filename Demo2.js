@@ -1,3 +1,5 @@
+let total=0
+updateShowingCount()
 
 const ul = document.getElementById("booklist");
 function handleFormSubmit(event) {
@@ -43,6 +45,7 @@ function addElement(title, desc, id) {
   });
 
   ul.appendChild(newlist);
+  updateShowingCount()
 }
 
 const search = document.getElementById("search");
@@ -52,13 +55,14 @@ search.addEventListener("keyup", function (event) {
   console.log("clicked...");
   const booklist = document.querySelectorAll("#booklist li");
 
-  // Now you can map through the dynamically created <li> elements
   booklist.forEach((list) => {
     console.log(list.childNodes[1]);
     if (list.childNodes[1].textContent.indexOf(event.target.value) == -1) {
       list.style.display = "none";
     }
   });
+  updateShowingCount()
+
 });
 
 const searchInput = document.getElementById("search");
@@ -68,6 +72,7 @@ searchInput.addEventListener("keyup", function (event) {
   if (searchTerm === "") {
     restoreHiddenLiElements();
   }
+  updateShowingCount()
 });
 function restoreHiddenLiElements() {
   const ul = document.getElementById("booklist");
@@ -124,10 +129,20 @@ document.addEventListener("DOMContentLoaded",function(){
       })
       .then((res) => {
         console.log(res)
+        total=res.length
+      
         for(let i=0;i<res.length;i++){
             addElement(res[i].title,res[i].description,res[i]._id)
         }
+        document.getElementById("total").textContent="Total:"+total.toString()
       })
       .catch((err) => console.log(err));
 
 })
+
+function updateShowingCount() {
+  const visibleLiTags = document.querySelectorAll("#booklist li:not([style*='display:none'])");
+  const totalVisibleLiTags = visibleLiTags.length;
+  const showingElement = document.getElementById("show");
+  showingElement.textContent = "Showing: " + totalVisibleLiTags;
+}
