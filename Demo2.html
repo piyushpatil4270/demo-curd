@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .main{
+            display: flex;
+        }
+        .main1{
+            width: 70%;
+        }
+       
+    </style>
+    <title>Document</title>
+</head>
+<body>
+     <div class="main">
+      <div class="main1">
+        <form class="form" onsubmit="handleFormSubmit(event)">
+            <label for="title">Title :</label>
+            <input id="title" />
+           <label for="desc">Description :   </label>
+            <textarea id="desc"></textarea>
+            <button id="submit" type="submit">Submit</button>
+        </form>
+        <ul id="booklist">
+        </ul>
+    </div>
+      <div class="main2">
+      <label for="search">Search:</label>
+      <input id="search" />
+     <span id="total">Total: </span>
+     <span id="show">Showing:</span>
+      </div>
+     </div>
+
+    <script src="Demo2.js"></script>
+</body>
+</html>
