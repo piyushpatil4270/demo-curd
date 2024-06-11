@@ -1,148 +1,189 @@
-let total=0
-updateShowingCount()
+let ul = document.querySelector("ul");
 
-const ul = document.getElementById("booklist");
-function handleFormSubmit(event) {
-  event.preventDefault();
-  console.log("form submitted...");
-  let title = document.getElementById("title");
-  let desc = document.getElementById("desc");
-  fetch("https://crudcrud.com/api/cce3efe4fd534fa49204c55528ee849e/Notes", {
-    method: "POST",
+let crudLink =
+  "https://crudcrud.com/api/a39e2cbe3f664adb9cbb929fee000c03/Tasks";
+
+function updateTotal() {
+  var total = 0;
+  fetch(crudLink, {
+    method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
-    body:JSON.stringify({title:title.value,description:desc.value}),
   })
     .then((res) => {
       return res.json();
     })
     .then((res) => {
-      console.log("res", res);
-      addElement(title.value, desc.value, res._id);
-
-      title.value = "";
-      desc.value = "";
+      document.getElementById("total").innerText = "Total:" + res.length;
+    
     })
     .catch((err) => console.log(err));
 }
-function addElement(title, desc, id) {
-  const newlist = document.createElement("li");
-  newlist.className = "booklist";
-  const listt = document.createTextNode(title);
-  const listd = document.createTextNode(desc);
-  const delbtn = document.createElement("button");
+
+document.addEventListener("DOMContentLoaded", (event) => {
+  event.preventDefault();
+  fetch(crudLink, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((res) => {
+      return res.json();
+    })
+    .then((res) => {
+      console.log(res);
+      document.getElementById("total").innerText = "Total:" + res.length;
+      document.getElementById("show").innerText = "Showing:" + res.length;
+      res.forEach((element) => {
+        createItem(element.task, element.desc, element._id);
+      });
+    })
+    .catch((err) => console.log(err));
+});
+
+function handleFormSubmit(event) {
+  event.preventDefault();
+  console.log("Form Submitted...");
+  const task_name = document.getElementById("title");
+  const task_desc = document.getElementById("desc");
+  console.log(task_desc.value);
+  console.log(task_name.value);
+  fetch(crudLink, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ task: task_name.value, desc: task_desc.value }),
+  })
+    .then((res) => {
+      return res.json();
+    })
+    .then((res) => {
+      
+      createItem(res.task, res.desc, res._id);
+      console.log(res);
+    })
+    .catch((err) => console.log(err));
+    updateTotal()
+    updateShowing()
+ 
+
+  task_desc.value = "";
+  task_name.value = "";
+}
+
+function createItem(name, desc, id) {
+  console.log(name);
+  console.log(desc);
+  console.log(id);
+  let newItem = document.createElement("li");
+  const l1 = document.createTextNode("Task: ");
+  const tName = document.createTextNode(name);
+  const l2 = document.createTextNode("Description: ");
+  const tDesc = document.createTextNode(desc);
+  const spacer = document.createTextNode(" ");
+  const span1 = document.createElement("span");
+  const span2 = document.createElement("span");
+  span1.appendChild(l1);
+  span2.appendChild(l2);
+  span1.style.fontWeight = "bold";
+  span2.style.fontWeight = "bold";
+  newItem.appendChild(span1);
+  newItem.appendChild(tName);
+  newItem.appendChild(spacer);
+  newItem.appendChild(spacer);
+  newItem.appendChild(spacer);
+  newItem.appendChild(span2);
+  newItem.appendChild(tDesc);
+
+  let delbtn = document.createElement("button");
   delbtn.appendChild(document.createTextNode("Delete"));
-  newlist.appendChild(document.createTextNode("Title: "));
-  newlist.appendChild(listt);
-  newlist.appendChild(document.createTextNode("  "));
-  newlist.appendChild(document.createTextNode("Desc: "));
-  newlist.appendChild(listd);
-  newlist.appendChild(delbtn);
-  delbtn.addEventListener("click", function (event) {
+  let editbtn = document.createElement("button");
+  editbtn.appendChild(document.createTextNode("Edit"));
+  newItem.appendChild(delbtn);
+  newItem.appendChild(editbtn);
+  ul.appendChild(newItem);
+
+  delbtn.addEventListener("click", (event) => {
+    event.preventDefault();
     ul.removeChild(event.target.parentElement);
-    deletenote(id);
+    fetch(`${crudLink}/${id}`, {
+      method: "DELETE",
+    })
+      .then((res) => {
+        console.log(res);
+        updateTotal();
+        updateShowing();
+      })
+      .catch((err) => console.log(err));
   });
 
-  ul.appendChild(newlist);
-  updateShowingCount()
+  editbtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    ul.removeChild(event.target.parentElement);
+    document.getElementById("title").value = name;
+    document.getElementById("desc").value = desc;
+    fetch(`${crudLink}/${id}`, {
+      method: "DELETE",
+    });
+    updateShowing()
+    updateTotal()
+  });
 }
 
 const search = document.getElementById("search");
-const booklist = document.querySelectorAll("li");
+
 search.addEventListener("keyup", function (event) {
   event.preventDefault();
-  console.log("clicked...");
-  const booklist = document.querySelectorAll("#booklist li");
-
-  booklist.forEach((list) => {
-    console.log(list.childNodes[1]);
-    if (list.childNodes[1].textContent.indexOf(event.target.value) == -1) {
-      list.style.display = "none";
+  
+  let allitems = document.getElementsByTagName("li");
+  console.log(allitems);
+  if(event.target.value.trim()===""){
+    for (let i = 0; i < allitems.length; i++) {
+      allitems[i].style.display = "none";
     }
-  });
-  updateShowingCount()
-
-});
-
-const searchInput = document.getElementById("search");
-
-searchInput.addEventListener("keyup", function (event) {
-  const searchTerm = event.target.value.trim(); // Trim any whitespace
-  if (searchTerm === "") {
-    restoreHiddenLiElements();
-  }
-  updateShowingCount()
-});
-function restoreHiddenLiElements() {
-  const ul = document.getElementById("booklist");
-
-  const liElements = ul.querySelectorAll("li");
-  liElements.forEach(function (li) {
-    li.style.display = "list-item";
-  });
-}
-
-function post(title, desc) {
-  fetch("https://crudcrud.com/api/cce3efe4fd534fa49204c55528ee849e/Notes", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ title: title, description: desc }),
-  })
-    .then((res) => {
-      return res.json();
-    })
-    .then((res) => {
-      console.log("res", res);
-      return res;
-    })
-    .catch((err) => console.log(err));
-}
-
-function deletenote(id) {
-  fetch(
-    `https://crudcrud.com/api/cce3efe4fd534fa49204c55528ee849e/Notes/${id}`,
-    {
-      method: "DELETE",
+    fetch(crudLink, {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-    }
-  );
-}
-
-
-document.addEventListener("DOMContentLoaded",function(){
-    fetch(
-        `https://crudcrud.com/api/cce3efe4fd534fa49204c55528ee849e/Notes`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
+    })
       .then((res) => {
         return res.json();
       })
       .then((res) => {
-        console.log(res)
-        total=res.length
-      
-        for(let i=0;i<res.length;i++){
-            addElement(res[i].title,res[i].description,res[i]._id)
-        }
-        document.getElementById("total").textContent="Total:"+total.toString()
+        console.log(res);
+        document.getElementById("total").innerText = "Total:" + res.length;
+        document.getElementById("show").innerText = "Showing:" + res.length;
+        res.forEach((element) => {
+          createItem(element.task, element.desc, element._id);
+        });
       })
       .catch((err) => console.log(err));
 
-})
+  }
+  for (let i = 0; i < allitems.length; i++) {
+    console.log("Child Nodes", allitems[i].childNodes[1]);
+    if (
+      allitems[i].childNodes[1].textContent.indexOf(event.target.value) === -1
+    )
+      allitems[i].style.display = "none";
+  }
+  updateShowing();
 
-function updateShowingCount() {
-  const visibleLiTags = document.querySelectorAll("#booklist li:not([style*='display:none'])");
-  const totalVisibleLiTags = visibleLiTags.length;
-  const showingElement = document.getElementById("show");
-  showingElement.textContent = "Showing: " + totalVisibleLiTags;
+});
+
+function updateShowing() {
+  const listitems = document.querySelectorAll("li");
+  let cnt = 0;
+  listitems.forEach((item) => {
+    const compstyle = window.getComputedStyle(item);
+    if (compstyle.getPropertyValue("display") != "none") cnt++;
+  });
+  document.getElementById("show").innerText = "Showing:" +cnt;
+
 }
+
+
